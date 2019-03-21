@@ -10,4 +10,4 @@
 php artisan serve 开启服务，
 即可食用。
 
-注：初始用户名：laravel 密码：123456
+注：后台入口为 域名/login，用户名：laravel 密码：123456
