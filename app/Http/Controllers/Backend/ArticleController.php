@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
+use App\Model\ArticleModel;
 
 class ArticleController extends Controller
 {
@@ -12,18 +12,19 @@ class ArticleController extends Controller
     public function index(Request $request)
     {
         if ($request->isMethod('post')) {
+            // 检索条件
             $where = [];
             $search = $request->post();
-            if ($search['title']) {
+            if (isset($search['title'])) {
                 $where[] = ['title', 'like', '%' . $search['title'] . '%'];
             }
-            if ($search['start']) {
-                $where[] = ['create_time', '>=', strtotime($search['start'])];
+            if (isset($search['start'])) {
+                $where[] = ['created_at', '>=', strtotime($search['start'])];
             }
-            if ($search['end']) {
-                $where[] = ['create_time', '<=', strtotime($search['end'])];
+            if (isset($search['end'])) {
+                $where[] = ['created_at', '<=', strtotime($search['end'])];
             }
-            if ($search['status']) {
+            if (isset($search['status'])) {
                 switch ($search['status']) {
                     case 'publish':
                         $value = 1;
@@ -44,21 +45,30 @@ class ArticleController extends Controller
                         $value = 2;
                         break;
                     default:
-                        throw new \InvalidArgumentException('状态错误！');
+                        throw new \InvalidArgumentException('文章状态错误！');
                 }
                 $where[] = [preg_replace('/^un/', '', $search['status']), '=', $value];
             }
         }
-        $where[] = ['delete_time', '=', null];
-        $articles = DB::table('article')->where($where)->orderBy('stick')->orderBy('id', 'desc')
-            ->paginate(auto_pagesize());
 
-        return view('backend.article.index', compact('articles'));
+        if (isset($where)) {
+            $articles = ArticleModel::where($where)->orderBy('stick')->orderBy('id', 'desc')->paginate(auto_pagesize());
+        } else {
+            $articles = ArticleModel::orderBy('stick')->orderBy('id', 'desc')->paginate(auto_pagesize());
+        }
+
+        $search = isset($search) ? $search : null;
+
+        return view('backend.article.index', compact('articles','search'));
     }
 
     // 文章相关操作
     public function operation(Request $request)
     {
+        $request->validate([
+            'cmd' => 'required',
+            'ids' => 'required'
+        ]);
         $param = $request->only(['cmd', 'ids']);
         switch ($param['cmd']) {
             case 'publish':
@@ -80,10 +90,13 @@ class ArticleController extends Controller
                 $type = ['highlight' => 2];
                 break;
             case 'delete':
-                $type = ['delete_time' => time()];
+                $type = ['deleted_at' => time()];
                 break;
+            default:
+                throw new \InvalidArgumentException('文章状态错误！');
         }
-        $num = DB::table('article')->whereIn('id', explode(',', $param['ids']))->update($type);
+        $num = ArticleModel::whereIn('id', explode(',', $param['ids']))->update($type);
+
         return view('jump', success('成功更新' . $num . '条数据！'));
     }
 
@@ -96,19 +109,24 @@ class ArticleController extends Controller
     // 文章修改或添加
     public function save(Request $request)
     {
+        $request->validate([
+            'title' => 'required',
+        ]);
         $data = $request->post();
-        $data['create_time'] = strtotime($data['create_time']);
-        unset($data['_token']);
         if (isset($data['id'])) {
-            DB::table('article')->where('id', $data['id'])->update($data);
+            // 更新
+            $data['highlight'] = isset($data['highlight']) ? $data['highlight'] : 2;
+            $data['stick'] = isset($data['stick']) ? $data['stick'] : 2;
+            $articleObj = ArticleModel::find($data['id']);
+            $bool = $articleObj->update($data);
             return view('jump', success('更新成功！', url('article/index')));
         } else {
-            unset($data['id']);
-            $bool = DB::table('article')->insert($data);
-            if ($bool) {
+            // 新增
+            $articleObj = ArticleModel::create($data);
+            if ($articleObj->id) {
                 return view('jump', success('添加文章成功！', url('article/index')));
             } else {
-                return view('jump', error('添加文章失败！'));
+                return view('jump', error('添加文章失败！', url('article/index')));
             }
         }
     }
@@ -116,7 +134,7 @@ class ArticleController extends Controller
     // 回显文章信息
     public function read($id)
     {
-        $data = DB::table('article')->find($id);
+        $data = ArticleModel::find($id);
         return view('backend.article.form', compact('data'));
     }
 }

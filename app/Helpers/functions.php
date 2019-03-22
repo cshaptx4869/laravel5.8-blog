@@ -58,7 +58,10 @@ if (!function_exists('error')){
     }
 }
 
-/* 自动分页*/
+/**
+ * 获取自动分页条数
+ * @return int
+ */
 if (!function_exists('auto_pagesize')){
     function auto_pagesize()
     {

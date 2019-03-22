@@ -16,7 +16,7 @@
                 </span>
                 </label>
             </div>
-            <div class="col-lg-2 col-sm-4 col-xs-8">
+            <div class="col-lg-3 col-sm-4 col-xs-8">
                 <div class="row">
                     操作：
                     <select name="operation">
@@ -55,26 +55,26 @@
             <div class="collapse widget-box widget-main col-lg-12" id="collapse">
                 <div class="form-group">
                     <label for="title">标题：</label>
-                    <input name="title" type="text" class="search-text" id="title" value="" />
+                    <input name="title" type="text" class="search-text" id="title" value="@if(isset($search)) {{ $search['title'] }} @endif" />
                 </div>
                 <div class="form-group">
                     <label for="start">开始日期：</label>
-                    <input name="start" type="text" class="search-text" id="start" value="" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd H:mm:ss',isShowClear:false,readOnly:false,skin:'default'})"/>
+                    <input name="start" type="text" class="search-text" id="start" value="@if(isset($search)) {{ $search['start'] }}@endif" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd H:mm:ss',readOnly:false,skin:'default'})"/>
                 </div>
                 <div class="form-group">
                     <label for="end">结束日期：</label>
-                    <input name="end" type="text" class="search-text" id="end" value="" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd H:mm:ss',isShowClear:false,readOnly:false,skin:'default'})"/>
+                    <input name="end" type="text" class="search-text" id="end" value="@if(isset($search)) {{ $search['end'] }}@endif" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd H:mm:ss',readOnly:false,skin:'default'})"/>
                 </div>
                 <div class="form-group">
                     <label for="status">状态：</label>
                     <select name="status" id="status">
                         <option value="" >- 请选择 -</option>
-                        <option value="publish" {if $Request.post.status == 'publish'}selected{/if}>- 发布 -</option>
-                        <option value="unpublish" {if $Request.post.status == 'unpublish'}selected{/if}>- 未发布 -</option>
-                        <option value="highlight" {if $Request.post.status == 'highlight'}selected{/if}>- 高亮 -</option>
-                        <option value="unhighlight" {if $Request.post.status == 'unhighlight'}selected{/if}>- 非高亮 -</option>
-                        <option value="stick" {if $Request.post.status == 'stick'}selected{/if}>- 置顶 -</option>
-                        <option value="unstick" {if $Request.post.status == 'unstick'}selected{/if}>- 非置顶 -</option>
+                        <option value="publish" @if(isset($search) && $search['status'] == 'publish') selected @endif>- 发布 -</option>
+                        <option value="unpublish" @if(isset($search) && $search['status'] == 'unpublish') selected @endif>- 未发布 -</option>
+                        <option value="highlight" @if(isset($search) && $search['status'] == 'highlight') selected @endif>- 高亮 -</option>
+                        <option value="unhighlight" @if(isset($search) && $search['status'] == 'unhighlight') selected @endif>- 非高亮 -</option>
+                        <option value="stick" @if(isset($search) && $search['status'] == 'stick') selected @endif>- 置顶 -</option>
+                        <option value="unstick" @if(isset($search) && $search['status'] == 'unstick') selected @endif>- 非置顶 -</option>
                     </select>
                 </div>
                 <div>
@@ -126,7 +126,7 @@
                     </td>
                     <td class="text-center hidden-xs">{{ $article->author }}</td>
                     <td class="text-center hidden-xs">{{ $article->hits }}</td>
-                    <td class="text-center hidden-xs">{{ date("Y-m-d H:i:s", $article->create_time)}}</td>
+                    <td class="text-center hidden-xs">{{ $article->created_at }}</td>
                     <td class="text-center">
                         <a href="{{ url('article/read/'.$article->id) }}" >
                             <span class="glyphicon glyphicon-edit"></span></a>

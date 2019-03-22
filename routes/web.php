@@ -20,8 +20,9 @@ Route::match(['get', 'post'], 'login', 'Backend\LoginController@login');
 
 // 需要登录才允许访问的路由
 Route::middleware('back.login')->namespace('Backend')->group(function () {
-    // 退出登录
+    // 欢迎界面
     Route::get('welcome', 'LoginController@welcome');
+    // 退出登录
     Route::get('logout', 'LoginController@logout');
     // 文章
     Route::match(['get', 'post'], 'article/index', 'ArticleController@index');
